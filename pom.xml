@@ -19,7 +19,8 @@
     <modules>
         <module>java8-study-project</module>
         <module>mongodb-study-project</module>
-  </modules>
+        <module>zookeeper-study-project</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
