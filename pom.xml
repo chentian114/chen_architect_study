@@ -8,7 +8,6 @@
 
     <packaging>pom</packaging>
     <name>chen_architect_study</name>
-    <url>http://maven.apache.org</url>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -20,6 +19,7 @@
         <module>java8-study-project</module>
         <module>mongodb-study-project</module>
         <module>zookeeper-study-project</module>
+        <module>rabbitmq-study-project</module>
     </modules>
 
     <properties>
