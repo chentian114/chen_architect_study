@@ -1,0 +1,69 @@
+package com.chen.rabbitmq.publish.producerconfirm;
+
+import com.chen.rabbitmq.constants.Constants;
+import com.rabbitmq.client.BuiltinExchangeType;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author: Chentian
+ * @date: Created in 2020/7/29 6:27
+ * @desc 消息发布-发送者确认模式-单个
+ */
+public class ProducerConfirm {
+    public static final String EXCHANGE_NAME = "producer_confirm_test";
+
+    public static void main(String[] args) throws IOException, TimeoutException, InterruptedException {
+
+        //创建连接
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(Constants.RABBITMQ_ADDRESS);
+        Connection connection = connectionFactory.newConnection();
+
+        //创建信道
+        Channel channel = connection.createChannel();
+        //指定交换器及类型
+        channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+
+        //消息发布失败监听
+        channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> {
+            String message = new String(body);
+            System.out.print("返回的replyCode ："+replyCode);
+            System.out.print(" 返回的replyText ："+replyText);
+            System.out.print(" 返回的exchange ："+exchange);
+            System.out.print(" 返回的routingKey ："+routingKey);
+            System.out.println(" 返回的message ："+message);
+        });
+
+        //开启失败通知
+        boolean mandatory = true;
+
+        //启用发送者确认模式
+        channel.confirmSelect();
+
+        String routeKey = "error";
+        int num = 3;
+        for (int i = 0 ; i < num ; i++){
+            String msg = "Hello,RabbitMq"+(i+1);
+            //发布消息，需要参数：交换器，路由键，其中以日志消息级别为路由键
+            channel.basicPublish(EXCHANGE_NAME,routeKey,mandatory,null,msg.getBytes());
+            System.out.println("send "+msg);
+
+            //发送者确认，同步方式，消息到达交换器，就会返回true。
+            if(channel.waitForConfirms()){
+                System.out.println("send success");
+            }else{
+                System.out.println("send failure");
+            }
+        }
+
+        // 关闭信道和连接
+        channel.close();
+        connection.close();
+    }
+
+}
